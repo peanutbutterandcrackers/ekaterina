@@ -2,6 +2,6 @@
 env environment: guix-env-manifest.scm
 	guix environment --manifest=$<
 
-.PHONY: tests
-tests:
+.PHONY: check
+check:
 	pytest -v
