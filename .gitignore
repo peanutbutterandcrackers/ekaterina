@@ -3,3 +3,6 @@
 
 # python byte code
 __pycache__/
+
+# Ignore gnucash_api_docs
+gnucash_api_docs
