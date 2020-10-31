@@ -6,10 +6,9 @@ env environment: guix-env-manifest.scm
 check:
 	pytest -v
 
-gnucash_api_docs: src := $(shell guix build --source gnucash)
-gnucash_api_docs: src-dir := $(shell tar --list -f $(src) | head -n1 | tr -d /)
-gnucash_api_docs:
-	tar xvfj $(src)
+gnucash_api_docs: $(shell guix build --source gnucash)
+	tar xvfj $<
+	$(eval src-dir := $(shell tar --list -f $< | head -n1 | tr -d /))
 	mkdir $(src-dir)/build
 	cd $(src-dir)/build && \
 	    guix environment gnucash --ad-hoc doxygen -- cmake .. && make doc
