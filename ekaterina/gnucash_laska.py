@@ -42,48 +42,17 @@ def is_valid_account_specification(account):
     >>> is_valid_account_specification("Assets: Poorly formatted sub:")
     False
     """
-    # Previous Solution:
-    #     proper_spec = re.compile(
-    #         r"^"
-    #         r"(?P<RootAccount>[^ ]([^:])+[^ :])"
-    #         r"("
-    #         r"(:(?=(?P<SubAccount>[^ ]([^:])+[^ :])))"
-    #         r"(?P=SubAccount)"
-    #         r")*"
-    #         r"$"
-    #     )
-    # return bool(proper_spec.match(account))
-    # Regex Explanation:
-    # r"^"
-    #    Start of string
-    # r"(?P<RootAccount>[^ ]([^:])+[^ :])"
-    #    Named Pattern: [^ ] -> does not start with a space
-    #                   ([^:])+ -> does not match ':'
-    #                   [^ :] -> does not end with a space or a ':'
-    # r"("
-    #    Start a group
-    # r"(:(?=(?P<SubAccount>[^ ]([^:])+[^ :])))"
-    #    Match ':' only if it is followed by an account-name pattern
-    # r"(?P=SubAccount)"
-    #    Match the named pattern that followed the ':' previously
-    # r")*"
-    #    Close the group and make it optional
-    # r"$"
-    #    End of string
-    # Caveats:
-    # (Sub)-Account name must be at least 4 characters long. Fix this.
-    # -----------------------------------------------------------
-    # I'm still keeping this regex, for now, because I'd like to atleast
-    # have it in git history as a note to go back to, just so.
-    # ------------------------------------------------------------
     assert isinstance(account, str), "Expecting String."
 
-    import re
     return not False in list(
         map(
             (lambda substr:
-             (substr.strip() == substr and
-              bool(re.match(r"^[^:]+$", substr)))),
+             (substr.strip() == substr
+              # "Asdf:" splits to ["Asdf", ""] (and pass this test)
+              # so make sure that there are no empty strings in the
+              # splited list.
+              and substr != ""
+              and ":" not in substr)),
             account.split(":")))
 
 # The following is adapted from GNUCash API doxygen Docs
