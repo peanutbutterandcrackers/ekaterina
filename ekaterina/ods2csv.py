@@ -44,4 +44,4 @@ def generate_csv_from_ods_using_libreoffice(odsfile, outdir=os.getcwd()):
         err_msg = conversion.stderr.decode("utf-8").strip()
         raise CSVConversionError(err_msg)
 
-    return destination_path(outdir, odsfile, with_extension=".csv")
+    return destination_path(outdir, odsfile, new_extension=".csv")
