@@ -25,7 +25,7 @@ import re
 import decimal
 import datetime
 
-from . import gnucash_laska
+from ekaterina import gnucash_laska
 
 class Account:
 
@@ -36,6 +36,12 @@ class Account:
         self.account = account_identifier
 
     def __str__(self):
+        return self.account
+
+    def get_account_identifier(self):
+        """
+        Same as self.account, but abstracting it so as to handle future changes
+        """
         return self.account
 
 class Currency:
@@ -68,6 +74,12 @@ class Customer:
         """We need this later on to compare whether or not two customers
            are indeed the same. (See assertions in the class Invoice)"""
         return self.name == other.name and self.ID == other.ID
+
+    def getname(self):
+        return self.name
+
+    def getID(self):
+        return self.ID
 
 class Sale:
 
@@ -109,6 +121,34 @@ class Sale:
         self.date = date
         self.currency = currency
 
+    def get_customer(self):
+        return self.customer
+
+    def get_currency(self):
+        return self.currency
+
+    def get_date(self):
+        return self.date
+
+    def get_description(self):
+        return self.description
+
+    def get_quantity(self):
+        # Turns out, gnucash.* functions only take
+        # gnu_numeric numbers. So fix that here.
+        return gnucash_laska.gnc_numeric_from_decimal(
+            decimal.Decimal(self.quantity))
+
+    def get_unitprice(self):
+        return gnucash_laska.gnc_numeric_from_decimal(
+            self.unitprice)
+
+    def get_notes(self):
+        return self.notes
+
+    def get_incomeaccount(self):
+        return self.income_account
+
 class SalesList:
 
     """
@@ -144,7 +184,9 @@ class Invoice:
     A list of Sale()s to a single customer. A single Sale() object can make
     a GNUCash Invoice.
     """
-    def __init__(self, customer, sales, postdate=None, duedate=None):
+    def __init__(self, customer, sales, postdate=None, duedate=None,
+                 ReceivableAC=Account("Assets:Accounts Receivable"),
+                 description=None):
         assert isinstance(customer, Customer)
         assert isinstance(sales, SalesList)
         if postdate and not isinstance(postdate, datetime.date):
@@ -152,7 +194,56 @@ class Invoice:
         if duedate and not isinstance(duedate, datetime.date):
             raise ValueError("duedate should be a datetime.date value")
         assert customer == sales.customer
+        assert isinstance(ReceivableAC, Account)
+        if description:
+            assert isinstance(description, str)
+
         self.customer = customer
         self.sales = sales
         self.postdate = postdate
         self.duedate = duedate
+        self.ReceivableAC = ReceivableAC
+        self.description = description
+
+    def get_sales(self):
+        return self.sales
+
+    def get_entries(self):
+        return self.sales
+
+    def get_postdate(self):
+        return self.postdate
+
+    def get_duedate(self):
+        return self.duedate
+
+    def get_description(self):
+        return self.description
+
+    def get_ReceivableAC(self):
+        return self.ReceivableAC
+
+class Payment:
+
+    def __init__(Customer, PaymentAmount, Refund=0, Memo="Payment Received",
+                 PaymentDate=datetime.date.today(),
+                 PostedAccount=Account("Assets:Accounts Receivable"),
+                 TransferAccount=Account("Assets:Current Assets:Petty Cash")):
+        self.Customer = Customer
+        self.PaymentAmount = PaymentAmount
+        self.Refund = Refund
+        self.Memo = Memo
+        self.PaymentDate = PaymentDate
+        self.PostedAccount = PostedAccount
+        self.TransferAccount = TransferAccount
+
+        self.Num = ""
+        self.GList = None
+        self.AutoPay = True
+        self.Transaction = None
+
+    def get_payment_amount(self):
+        return gnucash_laska.gnc_numeric_from_decimal(self.PaymentAmount)
+
+    def get_refund_amount(self):
+        return gnucash_laska.gnc_numeric_from_decimal(self.Refund)
