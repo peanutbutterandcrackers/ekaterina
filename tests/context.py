@@ -4,7 +4,7 @@ import sys
 
 sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
 
-from ekaterina import ods2csv
-from ekaterina import fsutils
+from ekaterina.readers import ods_reader
+from ekaterina.utils import fsutils
 from ekaterina import classes
-from ekaterina import gnucash_laska
+from ekaterina.utils import gnucash_laska

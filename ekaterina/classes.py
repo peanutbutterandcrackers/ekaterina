@@ -25,7 +25,7 @@ import re
 import decimal
 import datetime
 
-from ekaterina import gnucash_laska
+from ekaterina.utils import gnucash_laska
 
 class Account:
 

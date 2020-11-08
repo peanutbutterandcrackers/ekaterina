@@ -2,7 +2,7 @@
 
 from subprocess import run
 
-from .fsutils import *
+from ekaterina.utils.fsutils import *
 
 class CSVConversionError(Exception):
     pass
