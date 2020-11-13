@@ -205,6 +205,9 @@ class Invoice:
         self.ReceivableAC = ReceivableAC
         self.description = description
 
+    def get_customer(self):
+        return self.customer
+
     def get_sales(self):
         return self.sales
 
