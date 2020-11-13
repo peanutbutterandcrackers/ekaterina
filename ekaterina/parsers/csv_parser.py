@@ -51,18 +51,18 @@ CSVFieldMappings = {
     "quantity": ["ITEMS_SOLD", "QUANTITY"],
     "unit_price": ["UNIT_PRICE"],
     "description": ["SALE_DESCRIPTION", "DESCRIPTION"],
-    "note": ["NOTE"],
+    "note": ["SALE_NOTE", "NOTE"],
     "income_account": ["INCOME_ACCOUNT"],
     "sale_date": ["SALE_DATE", "DATE"],
     "currency": ["CURRENCY"],
     "post_date": ["POST_DATE"],
-    "due_date": ["POST_DATE"],
+    "due_date": ["DUE_DATE"],
     "receivable_account": ["RECEIVABLE_ACCOUNT"],
-    "payment_amount": ["PAYMENT_AMOUNT"],
+    "payment_amount": ["PAYMENT_AMOUNT", "PAYMENT_RECEIVED"],
     "refund": ["REFUND"],
     "memo": ["PAYMENT_MEMO", "MEMO"],
     "payment_date": ["PAYMENT_DATE", "DATE"],
-    "posted_account": ["POSTED_ACCOUNT"],
+    "posted_account": ["POSTED_ACCOUNT", "RELATED_INVOICE_POSTAGE_AC"],
     "payment_transfer_account": ["PAYMENT_TRANSFER_ACCOUNT"]
 }
 
@@ -183,7 +183,12 @@ def parse_Invoice(record):
     customer = parse_Customer(record)
     sales = Ekat.SalesList(parse_Sale(record))
     postdate = get('post_date', record) or datetime.date.today()
-    duedate = get('due_date', record)
+    if not isinstance(postdate, datetime.date):
+        postdate = datetime.datetime.strptime(postdate, REQUIRED_DATE_FORMAT)
+    # We are not quite sure when the duedate is. Postdate is today, for sure.
+    duedate = get('due_date', record) or None
+    if isinstance(duedate, str):
+        duedate = datetime.datetime.strptime(duedate, REQUIRED_DATE_FORMAT)
     receivable_account = (
         get('receivable_account', record)
         or "Assets:Accounts Receivable")
