@@ -211,8 +211,11 @@ class Invoice:
     def get_sales(self):
         return self.sales
 
+    def get_currency(self):
+        return self.get_sales().sales[0].currency
+
     def get_entries(self):
-        return self.sales
+        return self.sales.sales
 
     def get_postdate(self):
         return self.postdate

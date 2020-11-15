@@ -51,6 +51,7 @@ CSVFieldMappings = {
     "quantity": ["ITEMS_SOLD", "QUANTITY"],
     "unit_price": ["UNIT_PRICE"],
     "description": ["SALE_DESCRIPTION", "DESCRIPTION"],
+    "invoice_description": ["INVOICE_DESCRIPTION", "DESCRIPTION"],
     "note": ["SALE_NOTE", "NOTE"],
     "income_account": ["INCOME_ACCOUNT"],
     "sale_date": ["SALE_DATE", "DATE"],
@@ -191,14 +192,16 @@ def parse_Invoice(record):
     if not isinstance(postdate, datetime.date):
         postdate = datetime.datetime.strptime(postdate, REQUIRED_DATE_FORMAT)
     # We are not quite sure when the duedate is. Postdate is today, for sure.
-    duedate = get('due_date', record) or None
+    # Edit: We need a duedate. So set it to today() if it doesn't exist.
+    # Edit2: On second thought, set it to postdate. Because whatever.
+    duedate = get('due_date', record) or postdate
     if isinstance(duedate, str):
         duedate = datetime.datetime.strptime(duedate, REQUIRED_DATE_FORMAT)
     receivable_account = (
         get('receivable_account', record)
         or "Assets:Accounts Receivable")
     receivable_account = Ekat.Account(receivable_account)
-    description = get('description', record)
+    description = get('invoice_description', record)
     return Ekat.Invoice(customer, sales, postdate, duedate,
                         receivable_account, description)
 
@@ -260,6 +263,9 @@ def Parse(reader_output_list, merge_invoices_to_the_same_customer=True):
     new_invoices = list(chain.from_iterable(new_invoices))
 
     new_parsed_transactions = []
-    new_parsed_transactions.extend(new_invoices)
+    # I would have liked to add invoices first and payments seconds
+    # However, for some strange reason, adding invoice for X and then
+    # adding payment for X (X as in a Customer) was causing a segfault.
     new_parsed_transactions.extend(payments)
+    new_parsed_transactions.extend(new_invoices)
     return new_parsed_transactions

@@ -42,7 +42,7 @@ def ekat_to_gnc_Customer(GNCBook, EkatCustomer):
     More specifically, turn ekaterina.classes.Customer into
     gnucash.gnucash_business.Customer.
     """
-    return GNCBook.CustomerLookupByID(EkatCustomer.getID())
+    return GNCBook.CustomerLookupByID(EkatCustomer.get_ID())
 
 def ekat_to_gnc_Invoice(GNCBook, EkatInvoice):
     """
@@ -79,7 +79,8 @@ def ekatSale_to_gncInvoiceEntry(GNCBook, GNCInvoice, EkatSale):
     Quantity = EkatSale.get_quantity()
     UnitPrice = EkatSale.get_unitprice()
     IncomeAccount = ekat_to_gnc_Account(GNCBook, EkatSale.get_incomeaccount())
-    InvoiceEntry = gnucash.gnucash_business.Entry(GNCBook, GNCInvoice, Date)
+    InvoiceEntry = gnucash.gnucash_business.Entry(GNCBook, GNCInvoice)
+    InvoiceEntry.SetDateEntered(Date)
     InvoiceEntry.SetDescription(Description)
     InvoiceEntry.SetNotes(Notes)
     InvoiceEntry.SetQuantity(Quantity)
@@ -99,14 +100,15 @@ def add_ekatInvoice_to_GNCBook(GNCBook, EkatInvoice):
     Autopay = True
     DueDate  = EkatInvoice.get_duedate()
     PostDate = EkatInvoice.get_postdate()
+    ReceivableAC = ekat_to_gnc_Account(GNCBook, EkatInvoice.get_ReceivableAC())
     Description = EkatInvoice.get_description()
     if not Description:
         Description = "; ".join(
-            [sale.get_description() for sale in EkatInvoice.get_sales()])
-        ReceivableAC = ekat_to_gnc_Account(GNCBook, EkatInvoice.get_ReceivableAC())
-        Invoice = ekat_to_gnc_Invoice(GNCBook, EkatInvoice)
-        Invoice.PostToAccount(ReceivableAC, PostDate, DueDate, Description,
-                              AccumulateSplits, Autopay)
+            [sale.get_description() for sale in EkatInvoice.get_sales().sales])
+
+    Invoice = ekat_to_gnc_Invoice(GNCBook, EkatInvoice)
+    Invoice.PostToAccount(ReceivableAC, PostDate, DueDate, Description,
+                          AccumulateSplits, Autopay)
 
 def add_ekatPayment_to_GNCBook(GNCBook, EkatPayment):
     """
@@ -121,16 +123,16 @@ def add_ekatPayment_to_GNCBook(GNCBook, EkatPayment):
     # Consult gnucash api docs:
     # gnucash_api_docs/html/group__Owner.html#ga66a4b67de8ecc7798bd62e34370698fc
     # Run `make gnucash_api_docs` in project root.
-    Customer.ApplyPayment(EkatPayment.Transaction,
-                          EkatPayment.GList,
-                          PostedAccount,
-                          TransferAccount,
-                          EkatPayment.get_payment_amount(),
-                          EkatPayment.get_refund_amount(),
-                          EkatPayment.PaymentDate,
-                          EkatPayment.Memo,
-                          EkatPayment.Num,
-                          EkatPayment.AutoPay)
+    Customer.ApplyPaymentSecs(EkatPayment.Transaction,
+                              EkatPayment.GList,
+                              PostedAccount,
+                              TransferAccount,
+                              EkatPayment.get_payment_amount(),
+                              EkatPayment.get_refund_amount(),
+                              EkatPayment.PaymentDate,
+                              EkatPayment.Memo,
+                              EkatPayment.Num,
+                              EkatPayment.AutoPay)
 
 def danse_mazurka(GNCBook, TransactionList):
     """
