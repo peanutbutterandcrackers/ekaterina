@@ -37,6 +37,7 @@ def generate_csv_from_ods_using_libreoffice(odsfile, outdir=os.getcwd()):
 
     conversion = run(["libreoffice",
                       "--convert-to", "csv",
+                      "--infilter=CSV:44,34,76,1", # Use UTF-8 encoding
                       "--outdir", outdir,
                       odsfile],
                      capture_output=True)
