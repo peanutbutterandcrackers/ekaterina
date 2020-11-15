@@ -75,10 +75,10 @@ class Customer:
            are indeed the same. (See assertions in the class Invoice)"""
         return self.name == other.name and self.ID == other.ID
 
-    def getname(self):
+    def get_name(self):
         return self.name
 
-    def getID(self):
+    def get_ID(self):
         return self.ID
 
 class Sale:
@@ -228,7 +228,7 @@ class Invoice:
 
 class Payment:
 
-    def __init__(Customer, PaymentAmount, Refund=0, Memo="Payment Received",
+    def __init__(self, Customer, PaymentAmount, Refund=0, Memo="Payment Received",
                  PaymentDate=datetime.date.today(),
                  PostedAccount=Account("Assets:Accounts Receivable"),
                  TransferAccount=Account("Assets:Current Assets:Petty Cash")):

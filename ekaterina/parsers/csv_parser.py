@@ -30,7 +30,7 @@ PAYMENT_TRANSFER_ACCOUNT    -> Payment Transfer "Assets:Current Assets:Petty Cas
 import datetime
 from decimal import Decimal
 
-from ekaterina import classes
+from ekaterina import classes as Ekat
 
 class CustomerTransactionMap:
     """
@@ -103,7 +103,7 @@ def get(get_what, record):
     """
     gotten =  _get[get_what](record)
     if len(gotten) > 0:
-        return gotten[0]
+        return gotten[0].strip() # strip leading/trailing whitespace
     else:
         return None
 
@@ -112,14 +112,16 @@ def is_valid_Sale_record(record):
     if get('customer_name', record) and get('customer_id', record):
         is_valid_record = True
     if is_valid_record:
-        is_valid_record = not None in [
+        valid_record_qualifications = [
             get('description', record),
             get('quantity', record),
             get('unit_price', record),
             get('income_account', record),
-            get('date', record),
+            get('sale_date', record),
             get('currency', record)
         ]
+        is_valid_record = ((not None in valid_record_qualifications)
+                           and (not '' in valid_record_qualifications))
     return is_valid_record
 
 def is_valid_Payment_record(record):
@@ -127,10 +129,13 @@ def is_valid_Payment_record(record):
     if get('customer_name', record) and get('customer_id', record):
         is_valid_record = True
     if is_valid_record:
-        is_valid_record = not None in [
+        valid_record_qualifications = [
             get('payment_amount', record),
-            get('payment_date', record),
+            get('payment_date', record)
         ]
+        is_valid_record = ((not None in valid_record_qualifications)
+                           and (not '' in valid_record_qualifications))
+
     return is_valid_record
 
 def is_valid_record(record):
@@ -138,7 +143,7 @@ def is_valid_record(record):
 
 def parse_Customer(record):
     CustomerName = get('customer_name', record)
-    CustomerID   = get('customer_id', record)
+    CustomerID   = int(get('customer_id', record))
     return Ekat.Customer(CustomerName, CustomerID)
 
 def parse_Currency(record):
@@ -153,8 +158,8 @@ def parse_Sale(record):
     unit_price = Decimal(get('unit_price', record))
     notes = get('note', record) or "" # If None, ""
     income_account = Ekat.Account(get('income_account', record))
-    date = datetime.datetime.strptime(get('sale_date'), REQUIRED_DATE_FORMAT)
-    currency = get('currency', record)
+    date = datetime.datetime.strptime(get('sale_date', record), REQUIRED_DATE_FORMAT)
+    currency = parse_Currency(record)
     return Ekat.Sale(customer, description, quantity,
                      unit_price, notes, income_account,
                      date, currency)
@@ -198,7 +203,7 @@ def parse_Invoice(record):
                         receivable_account, description)
 
 def parse_record(record):
-    sale = None
+    invoice = None
     payment = None
     if is_valid_record(record):
         if is_valid_Sale_record(record):
